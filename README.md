@@ -6,7 +6,12 @@ You are welcome to create an issue or propose a big fix if anything occured.
 ```python
 book = Book(author='Someone', title='Mystery Book')
 page = Page()
-page.add_component(TextComponent(text='[Go to Google]', click_event=ClickEvent(action=ClickAction.URL, value='https://google.com'),attribute=StringFormat(underline=True, italic=True), color='blue'))
+page.add_component(
+    TextComponent(
+        text='[Go to Google]',
+        click_event=ClickEvent(action=ClickAction.URL, value='https://google.com'),
+        attribute=StringFormat(underline=True, italic=True), color='blue')
+)
 book.add_page(page)
 print(book.give_cmd('@s', 1))
 # /give @s minecraft:written_book{author:"Someone", title: "Mystery Book", pages: ['["", {"color": "blue", "clickEvent": {"action": "open_url", "value": "https://google.com"}, "italic": True, "underline": True, "text": "[Go to Google]", "type": "text"}]']} 1
