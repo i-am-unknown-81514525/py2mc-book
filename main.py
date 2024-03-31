@@ -8,8 +8,8 @@ import string
 from enum import Enum
 
 COLOR = (
-"black", "dark_blue", "dark_green", "dark_red", "dark_purple", "gold", "gray", "dark_gray", "blue", "green", "aqua",
-"red", "light_purple", "yellow", "white")
+    "black", "dark_blue", "dark_green", "dark_red", "dark_purple", "gold", "gray", "dark_gray", "blue", "green", "aqua",
+    "red", "light_purple", "yellow", "white")
 
 
 @dataclass
@@ -58,11 +58,11 @@ class HoverAction(Enum):
     ITEM = "show_item"
     ENTITY = "show_entity"
 
+
 class BaseHoverContent(ABC):
     @abstractmethod
     def translate(self) -> Never:
         raise NotImplementedError
-
 
 
 class ClickEvent:
@@ -72,6 +72,7 @@ class ClickEvent:
 
     def to_dict(self) -> Any:
         return {'action': self._action.value, 'value': self._value}
+
 
 @dataclass
 class Item:
@@ -96,7 +97,7 @@ class Entity:
 
 
 class HoverEvent:
-    def __init__(self, contents:Union[TextComponent, Item, Entity]):
+    def __init__(self, contents: Union[TextComponent, Item, Entity]):
         if isinstance(contents, TextComponent):
             self._contents = contents
             self._action = HoverAction.TEXT
@@ -115,11 +116,12 @@ class HoverEvent:
         if isinstance(self._contents, Item):
             return {"action": self._action.value, "contents": self._contents.to_dict()}
         if isinstance(self._contents, Entity):
-            return {"action": self._action.value, "contents":self._contents.to_dict()}
+            return {"action": self._action.value, "contents": self._contents.to_dict()}
 
 
 class AnyComponent(BaseComponent):
-    def __init__(self, color: Optional[AnyStr] = None, attribute: Optional[StringFormat] = None, hover_event: Optional[HoverEvent]=None, click_event: Optional[ClickEvent]=None):
+    def __init__(self, color: Optional[AnyStr] = None, attribute: Optional[StringFormat] = None,
+                 hover_event: Optional[HoverEvent] = None, click_event: Optional[ClickEvent] = None):
         if not isinstance(color, (str, types.NoneType)):
             color_error('Unknown Color')
         if isinstance(color, str):
@@ -149,17 +151,21 @@ class AnyComponent(BaseComponent):
             return {**data, **self._char_attribute.to_dict()}
         return data
 
+
 class TextComponent(AnyComponent):
-    def __init__(self, text: AnyStr, color: Optional[AnyStr] = None, attribute: Optional[StringFormat] = None, hover_event: Optional[HoverEvent]=None, click_event: Optional[ClickEvent]=None):
+    def __init__(self, text: AnyStr, color: Optional[AnyStr] = None, attribute: Optional[StringFormat] = None,
+                 hover_event: Optional[HoverEvent] = None, click_event: Optional[ClickEvent] = None):
         self._text = text
         super().__init__(color, attribute, hover_event, click_event)
 
     def translate(self) -> dict[str, Any]:
-        return {**super().translate(), **{'text': self._text, "type":"text"}}
+        return {**super().translate(), **{'text': self._text, "type": "text"}}
 
 
 class TranslatableComponent(AnyComponent):
-    def __init__(self, translate: AnyStr, color: Optional[AnyStr] = None, attribute: Optional[StringFormat] = None, hover_event: Optional[HoverEvent]=None, click_event: Optional[ClickEvent]=None, fallback: Optional[AnyStr] = None, with_json: Optional[TextComponent] = None):
+    def __init__(self, translate: AnyStr, color: Optional[AnyStr] = None, attribute: Optional[StringFormat] = None,
+                 hover_event: Optional[HoverEvent] = None, click_event: Optional[ClickEvent] = None,
+                 fallback: Optional[AnyStr] = None, with_json: Optional[TextComponent] = None):
         self._translate = translate
         self._fallback = fallback
         self._with_json = with_json
@@ -173,48 +179,55 @@ class TranslatableComponent(AnyComponent):
             data['with'] = self._with_json.translate()
 
     def translate(self) -> dict[str, Any]:
-        return {**super().translate(), **{'translate': self._translate, "type":"translatable"}, **self.self_translate()}
+        return {**super().translate(), **{'translate': self._translate, "type": "translatable"},
+                **self.self_translate()}
 
 
 class ScoreComponent(AnyComponent):
-    def __init__(self, name: AnyStr, objective: AnyStr, color: Optional[AnyStr] = None, attribute: Optional[StringFormat] = None, hover_event: Optional[HoverEvent]=None, click_event: Optional[ClickEvent]=None):
+    def __init__(self, name: AnyStr, objective: AnyStr, color: Optional[AnyStr] = None,
+                 attribute: Optional[StringFormat] = None, hover_event: Optional[HoverEvent] = None,
+                 click_event: Optional[ClickEvent] = None):
         self._name = name
         self._objective = objective
         super().__init__(color, attribute, hover_event, click_event)
 
     def translate(self) -> dict[str, Any]:
-        return {**super().translate(), **{'score': {'name':self._name, 'objective':self._objective}, "type":"score"}}
+        return {**super().translate(), **{'score': {'name': self._name, 'objective': self._objective}, "type": "score"}}
 
 
 class EntityComponent(AnyComponent):
-    def __init__(self, selector: AnyStr, color: Optional[AnyStr] = None, attribute: Optional[StringFormat] = None, hover_event: Optional[HoverEvent]=None, click_event: Optional[ClickEvent]=None, separator: Optional[TextComponent]=None):
+    def __init__(self, selector: AnyStr, color: Optional[AnyStr] = None, attribute: Optional[StringFormat] = None,
+                 hover_event: Optional[HoverEvent] = None, click_event: Optional[ClickEvent] = None,
+                 separator: Optional[TextComponent] = None):
         self._selector = selector
         self._seperator = separator
         super().__init__(color, attribute, hover_event, click_event)
 
     def translate(self) -> dict[str, Any]:
-        data = {**super().translate(), **{"type":"selector", "selector":self._selector}}
+        data = {**super().translate(), **{"type": "selector", "selector": self._selector}}
         if self._seperator:
-            data['selector'] = self._seperator.translate()
+            data['seperator'] = self._seperator.translate()
         return data
 
 
 class KeybindComponent(AnyComponent):
-    def __init__(self, keybind:dict, color: Optional[AnyStr] = None, attribute: Optional[StringFormat] = None, hover_event: Optional[HoverEvent]=None, click_event: Optional[ClickEvent]=None):
+    def __init__(self, keybind: dict, color: Optional[AnyStr] = None, attribute: Optional[StringFormat] = None,
+                 hover_event: Optional[HoverEvent] = None, click_event: Optional[ClickEvent] = None):
         self._keybind = keybind
         super().__init__(color, attribute, hover_event, click_event)
 
     def translate(self) -> dict[str, Any]:
-        return {**super().translate(), **{'keybind': self._keybind, "type":"keybind"}}
+        return {**super().translate(), **{'keybind': self._keybind, "type": "keybind"}}
 
 
 class NbtComponent(AnyComponent):
-    def __init__(self, nbt:dict, color: Optional[AnyStr] = None, attribute: Optional[StringFormat] = None, hover_event: Optional[HoverEvent]=None, click_event: Optional[ClickEvent]=None):
+    def __init__(self, nbt: dict, color: Optional[AnyStr] = None, attribute: Optional[StringFormat] = None,
+                 hover_event: Optional[HoverEvent] = None, click_event: Optional[ClickEvent] = None):
         self._nbt = nbt
         super().__init__(color, attribute, hover_event, click_event)
 
     def translate(self) -> dict[str, Any]:
-        return {**super().translate(), **{"type":"keybind"} **self._nbt}
+        return {**super().translate(), **{"type": "keybind"} ** self._nbt}
 
 
 def is_sequence_component(data) -> TypeGuard[Sequence[BaseComponent]]:
@@ -266,7 +279,7 @@ class Page:
 
 
 class Book:
-    def __init__(self, author:AnyStr, title: AnyStr, pages: Optional[list[Page]] = None):
+    def __init__(self, author: AnyStr, title: AnyStr, pages: Optional[list[Page]] = None):
         self._author = author
         self._title = title
         self._pages: list[Page] = pages or []
@@ -294,12 +307,12 @@ class Book:
         return left.add_page(other)
 
     def translate(self):
-        return '{'+f'author:\"{self._author}\", title: \"{self._title}\", pages: {[p.translate() for p in self._pages]}'+'}'
+        return '{' + f'author:\"{self._author}\", title: \"{self._title}\", pages: {[p.translate() for p in self._pages]}' + '}'
 
     def item(self):
-        return 'minecraft:written_book'+self.translate()
+        return 'minecraft:written_book' + self.translate()
 
-    def give_cmd(self, selector: str = '@s', count: int=1):
+    def give_cmd(self, selector: str = '@s', count: int = 1):
         return f'/give {selector} {self.item()} {count}'
 
 
