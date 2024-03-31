@@ -22,7 +22,7 @@ class StringFormat:
     font: Optional[AnyStr] = None
 
     def to_dict(self) -> dict[str, Union[bool, AnyStr]]:
-        data = {k: v for k, v in self.__dict__ if v is not None}
+        data = {k: v for k, v in self.__dict__.items() if v is not None}
         return data
 
 
@@ -80,7 +80,7 @@ class Item:
     tag: Optional[Any] = None
 
     def to_dict(self) -> dict[str, Any]:
-        data = {k: v for k, v in self.__dict__ if v is not None}
+        data = {k: v for k, v in self.__dict__.items() if v is not None}
         return data
 
 
@@ -91,7 +91,7 @@ class Entity:
     name: Optional[Union[str, TextComponent]] = None
 
     def to_dict(self) -> dict[str, Any]:
-        data = {k: v for k, v in self.__dict__ if v is not None}
+        data = {k: v for k, v in self.__dict__.items() if v is not None}
         return data
 
 
@@ -304,8 +304,13 @@ class Book:
 
 
 if __name__ == '__main__':
-    book = Book(author='Someone', title='Some Book')
+    book = Book(author='Someone', title='Mystery Book')
     page = Page()
-    page.add_component(TextComponent(text='idk', click_event=ClickEvent(action=ClickAction.URL, value='https://google.com')))
+    page.add_component(
+        TextComponent(
+            text='[Go to Google]',
+            click_event=ClickEvent(action=ClickAction.URL, value='https://google.com'),
+            attribute=StringFormat(underline=True, italic=True), color='blue')
+    )
     book.add_page(page)
     print(book.give_cmd('@s', 1))
