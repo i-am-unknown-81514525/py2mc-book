@@ -16,7 +16,7 @@ COLOR = (
 class StringFormat:
     bold: Optional[bool] = None
     italic: Optional[bool] = None
-    underline: Optional[bool] = None
+    underlined: Optional[bool] = None
     strikethrough: Optional[bool] = None
     obfuscated: Optional[bool] = None
     font: Optional[AnyStr] = None
