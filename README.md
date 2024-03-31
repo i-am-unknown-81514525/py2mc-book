@@ -10,7 +10,7 @@ page.add_component(
     TextComponent(
         text='[Go to Google]',
         click_event=ClickEvent(action=ClickAction.URL, value='https://google.com'),
-        attribute=StringFormat(underline=True, italic=True), color='blue')
+        attribute=StringFormat(underlined=True, italic=True), color='blue')
 )
 book.add_page(page)
 print(book.give_cmd('@s', 1))
