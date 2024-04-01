@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import types
-from typing import Optional, Self, Union, Sequence, TypeGuard, Never, Any, AnyStr
+from typing import Optional, Union, Sequence, TypeGuard, NoReturn, Any, AnyStr
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import string
@@ -26,13 +26,13 @@ class StringFormat:
         return data
 
 
-def color_error(color: AnyStr) -> Never:
+def color_error(color: AnyStr) -> NoReturn:
     raise ValueError(f"Color '{color}' cannot not be identify and parse")
 
 
 class BaseComponent(ABC):
     @abstractmethod
-    def translate(self) -> Never:
+    def translate(self) -> NoReturn:
         raise NotImplementedError
 
 
@@ -61,7 +61,7 @@ class HoverAction(Enum):
 
 class BaseHoverContent(ABC):
     @abstractmethod
-    def translate(self) -> Never:
+    def translate(self) -> NoReturn:
         raise NotImplementedError
 
 
@@ -227,7 +227,7 @@ class NbtComponent(AnyComponent):
         super().__init__(color, attribute, hover_event, click_event)
 
     def translate(self) -> dict[str, Any]:
-        return {**super().translate(), **{"type": "keybind"} ** self._nbt}
+        return {**super().translate(), **{"type": "keybind"}, **self._nbt}
 
 
 def is_sequence_component(data) -> TypeGuard[Sequence[BaseComponent]]:
@@ -250,16 +250,19 @@ def is_sequence_page(data) -> TypeGuard[Sequence[Page]]:
 
 class Page:
     def __init__(self, content: Optional[list[BaseComponent]] = None):
-        self._content: list[Any] = content or [""]
+        self._content: list[Any] = [""]
+        if content:
+            for component in content:
+                self.add_component(component)
 
-    def __iadd__(self, other: Union[BaseComponent, Sequence[BaseComponent]]) -> Self:
+    def __iadd__(self, other: Union[BaseComponent, Sequence[BaseComponent]]) -> Page:
         return self.add_component(other)
 
-    def __add__(self, other: Union[BaseComponent, Sequence[BaseComponent]]) -> Self:
+    def __add__(self, other: Union[BaseComponent, Sequence[BaseComponent]]) -> Page:
         left = Page(content=self._content)
         return left.add_component(other)
 
-    def add_component(self, other: Union[BaseComponent, Sequence[BaseComponent]]) -> Self:
+    def add_component(self, other: Union[BaseComponent, Sequence[BaseComponent]]) -> Page:
         if not isinstance(other, (BaseComponent, Sequence)):
             raise ValueError('You must supply a `BaseComponent`')
         if isinstance(other, BaseComponent):
@@ -284,7 +287,7 @@ class Book:
         self._title = title
         self._pages: list[Page] = pages or []
 
-    def add_page(self, page: Union[Page, Sequence[Page]]) -> Self:
+    def add_page(self, page: Union[Page, Sequence[Page]]) -> Book:
         if not isinstance(page, (Page, Sequence)):
             raise ValueError('You must supply a `BaseComponent`')
         if isinstance(page, Page):
@@ -299,10 +302,10 @@ class Book:
     def __len__(self) -> int:
         return len(self._pages)
 
-    def __iadd__(self, other: Union[Page, Sequence[Page]]) -> Self:
+    def __iadd__(self, other: Union[Page, Sequence[Page]]) -> Book:
         return self.add_page(other)
 
-    def __add__(self, other: Union[Page, Sequence[Page]]) -> Self:
+    def __add__(self, other: Union[Page, Sequence[Page]]) -> Book:
         left = Book(pages=self._pages)
         return left.add_page(other)
 
@@ -317,13 +320,37 @@ class Book:
 
 
 if __name__ == '__main__':
-    book = Book(author='Someone', title='Mystery Book')
+    book = Book(author='null', title='Mystery notebook')
     page = Page()
     page.add_component(
         TextComponent(
-            text='[Go to Google]',
+            text='[Google Search]',
             click_event=ClickEvent(action=ClickAction.URL, value='https://google.com'),
-            attribute=StringFormat(underlined=True, italic=True), color='blue')
+            hover_event=HoverEvent(contents=
+                TextComponent(
+                    text='Go to https://google.com',
+                    color='white',
+                    attribute=StringFormat(underlined=True)
+                )
+            ),
+            attribute=StringFormat(underlined=True, italic=True),
+            color='blue'
+        )
+    )
+    page.add_component(
+        TextComponent(
+            text='[Bing Search]',
+            click_event=ClickEvent(action=ClickAction.URL, value='https://www.bing.com'),
+            hover_event=HoverEvent(contents=
+                TextComponent(
+                    text='Go to https://www.bing.com',
+                    color='white',
+                    attribute=StringFormat(underlined=True)
+            )
+            ),
+            attribute=StringFormat(underlined=True, italic=True),
+            color='blue'
+        )
     )
     book.add_page(page)
     print(book.give_cmd('@s', 1))
